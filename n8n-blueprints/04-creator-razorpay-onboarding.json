@@ -1,0 +1,35 @@
+{
+  "name": "04 - Creator Razorpay Onboarding & Community Automation Engine",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "razorpay-payment-webhook",
+        "options": {}
+      },
+      "id": "node-razorpay-webhook",
+      "name": "Razorpay Payment Captured Ingest",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://api.whatsapp.com/v18.0/YOUR_PHONE_NUMBER_ID/messages",
+        "options": {},
+        "bodyParametersJson": "{\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.body.payload.payment.entity.contact }}\",\n  \"type\": \"text\",\n  \"text\": { \"body\": \"🎉 Payment Received! Welcome aboard {{ $json.body.payload.payment.entity.email }}. Here is your instant access link: https://discord.gg/your-private-vip-lounge\" }\n}"
+      },
+      "id": "node-razorpay-whatsapp",
+      "name": "Send WhatsApp VIP Instant Access Link",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [440, 300]
+    }
+  ],
+  "connections": {
+    "Razorpay Payment Captured Ingest": {
+      "main": [[{ "node": "Send WhatsApp VIP Instant Access Link", "type": "main", "index": 0 }]]
+    }
+  }
+}

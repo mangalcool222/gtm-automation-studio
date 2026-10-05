@@ -1,0 +1,49 @@
+{
+  "name": "🔥 GTM High-Signal Prospect Pipeline",
+  "desc": "Technical Systems Studio - Lead prospecting, Loom Teardowns, and Close pipeline.",
+  "lists": [
+    {
+      "id": "list-prospects",
+      "name": "1. Scraped Prospects (Apollo/Apify)",
+      "pos": 1000
+    },
+    {
+      "id": "list-audit-needed",
+      "name": "2. Audit & Loom Needed (Top 5/day)",
+      "pos": 2000
+    },
+    {
+      "id": "list-loom-sent",
+      "name": "3. 90-Sec Loom Sent (Outreach)",
+      "pos": 3000
+    },
+    {
+      "id": "list-call-scheduled",
+      "name": "4. Discovery Call Scheduled ($1.5k - $3k)",
+      "pos": 4000
+    },
+    {
+      "id": "list-proposal-sent",
+      "name": "5. Proposal / Staging Demo Live",
+      "pos": 5000
+    },
+    {
+      "id": "list-closed-won",
+      "name": "6. 🎉 CLOSED WON (Onboarding)",
+      "pos": 6000
+    }
+  ],
+  "labels": [
+    { "name": "Dubai Real Estate", "color": "sky" },
+    { "name": "Performance Marketing Agency", "color": "purple" },
+    { "name": "MedSpa / Clinic", "color": "green" },
+    { "name": "Urgent Leak", "color": "red" },
+    { "name": "Hot Lead (> $2k spend)", "color": "orange" }
+  ],
+  "customFields": [
+    { "name": "Ad Spend ($/mo)", "type": "number" },
+    { "name": "Loom Link", "type": "string" },
+    { "name": "Estimated Revenue Leak", "type": "string" },
+    { "name": "Next Followup Date", "type": "date" }
+  ]
+}

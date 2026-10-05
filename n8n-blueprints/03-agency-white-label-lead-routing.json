@@ -1,0 +1,70 @@
+{
+  "name": "03 - Agency White-Label AI Qualification & CRM Sync Engine",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agency-inbound-lead",
+        "options": {}
+      },
+      "id": "node-agency-webhook",
+      "name": "Agency Inbound Lead Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {},
+        "prompt": "=Analyze this agency inbound lead response and score quality from 1 to 100 based on budget and urgency:\nLead Data: {{ JSON.stringify($json.body) }}\n\nReturn JSON: {\"score\": number, \"qualification_tier\": \"HOT\"|\"WARM\"|\"COLD\", \"reason\": string}"
+      },
+      "id": "node-openai-qualify",
+      "name": "AI Lead Qualification Node",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.message.content.qualification_tier }}",
+              "operation": "equal",
+              "value2": "HOT"
+            }
+          ]
+        }
+      },
+      "id": "node-check-tier",
+      "name": "Is Hot Lead?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "chatId": "-1002233445566",
+        "text": "🔥 *HOT LEAD QUALIFIED BY AI*\n\nScore: {{ $json.message.content.score }}/100\nReason: {{ $json.message.content.reason }}\n\nAction: Instant VIP Booking Sent!",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "id": "node-hot-alert",
+      "name": "Push VIP Notification",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [920, 200]
+    }
+  ],
+  "connections": {
+    "Agency Inbound Lead Webhook": {
+      "main": [[{ "node": "AI Lead Qualification Node", "type": "main", "index": 0 }]]
+    },
+    "AI Lead Qualification Node": {
+      "main": [[{ "node": "Is Hot Lead?", "type": "main", "index": 0 }]]
+    },
+    "Is Hot Lead?": {
+      "main": [[{ "node": "Push VIP Notification", "type": "main", "index": 0 }]]
+    }
+  }
+}

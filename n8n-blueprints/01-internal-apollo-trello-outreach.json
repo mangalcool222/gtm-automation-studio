@@ -1,0 +1,149 @@
+{
+  "name": "01 - Internal Apollo Prospecting & Trello Lead Routing",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "apollo-lead-webhook",
+        "options": {}
+      },
+      "id": "node-webhook-1",
+      "name": "Apollo Webhook Ingest",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.body.estimated_ad_spend_monthly }}",
+              "operation": "greaterEqual",
+              "value2": 1500
+            }
+          ],
+          "string": [
+            {
+              "value1": "={{ $json.body.title }}",
+              "operation": "contains",
+              "value2": "Founder"
+            }
+          ]
+        }
+      },
+      "id": "node-filter-1",
+      "name": "High Signal Lead Filter",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "listId": "65b9021f8a7d11234567890a",
+        "name": "=[HIGH PRIORITY] {{ $json.body.first_name }} - {{ $json.body.company_name }}",
+        "description": "Company: {{ $json.body.company_name }}\nWebsite: {{ $json.body.website_url }}\nEmail: {{ $json.body.email }}\nPhone: {{ $json.body.phone }}\nEstimated Spend: ${{ $json.body.estimated_ad_spend_monthly }}/mo\nNiche: {{ $json.body.niche }}\n\nPain Point Identified:\nNo instant WhatsApp/Telegram lead trigger on landing page form.\n\nNext Action: Record 90s Loom teardown video.",
+        "additionalFields": {
+          "idLabels": ["65b9021f8a7d999999999991"]
+        }
+      },
+      "id": "node-trello-1",
+      "name": "Create Trello Card (Audit Needed)",
+      "type": "n8n-nodes-base.trello",
+      "typeVersion": 1,
+      "position": [720, 200]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://api.smartlead.ai/v1/campaigns/12345/leads?api_key=YOUR_SMARTLEAD_API_KEY",
+        "options": {},
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "email",
+              "value": "={{ $json.body.email }}"
+            },
+            {
+              "name": "first_name",
+              "value": "={{ $json.body.first_name }}"
+            },
+            {
+              "name": "company_name",
+              "value": "={{ $json.body.company_name }}"
+            },
+            {
+              "name": "custom_fields",
+              "value": "{\"loom_angle\": \"Meta Ad Lead Routing Leak\"}"
+            }
+          ]
+        }
+      },
+      "id": "node-smartlead-1",
+      "name": "Trigger Smartlead Outreach",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [950, 200]
+    },
+    {
+      "parameters": {
+        "chatId": "-1001987654321",
+        "text": "🎯 *NEW HIGH SIGNAL PROSPECT SCRAPED*\n\n👤 *Name:* {{ $json.body.first_name }} {{ $json.body.last_name }}\n🏢 *Company:* {{ $json.body.company_name }}\n🌐 *Site:* {{ $json.body.website_url }}\n💰 *Ad Spend:* ${{ $json.body.estimated_ad_spend_monthly }}/mo\n\n📋 *Trello Card Created!* Ready for Loom teardown.",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "node-telegram-internal",
+      "name": "Alert Internal Telegram Channel",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1180, 200]
+    }
+  ],
+  "connections": {
+    "Apollo Webhook Ingest": {
+      "main": [
+        [
+          {
+            "node": "High Signal Lead Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "High Signal Lead Filter": {
+      "main": [
+        [
+          {
+            "node": "Create Trello Card (Audit Needed)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Trello Card (Audit Needed)": {
+      "main": [
+        [
+          {
+            "node": "Trigger Smartlead Outreach",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger Smartlead Outreach": {
+      "main": [
+        [
+          {
+            "node": "Alert Internal Telegram Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

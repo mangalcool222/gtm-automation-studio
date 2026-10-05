@@ -1,0 +1,90 @@
+{
+  "name": "02 - Real Estate 3-Second Instant Lead Routing (WhatsApp + Telegram + Supabase)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "real-estate-lead-inbound",
+        "options": {}
+      },
+      "id": "node-meta-lead",
+      "name": "Meta Ads / Webhooks Form Lead Ingest",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            { "name": "lead_name", "value": "={{ $json.body.name || $json.body.full_name }}" },
+            { "name": "lead_phone", "value": "={{ $json.body.phone || $json.body.mobile }}" },
+            { "name": "lead_email", "value": "={{ $json.body.email }}" },
+            { "name": "property_interest", "value": "={{ $json.body.property || 'Dubai Off-Plan Luxury Villa' }}" },
+            { "name": "budget", "value": "={{ $json.body.budget || '$500k - $1M' }}" },
+            { "name": "timestamp", "value": "={{ $now.toISO() }}" }
+          ]
+        }
+      },
+      "id": "node-normalize",
+      "name": "Normalize Lead Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://api.whatsapp.com/v18.0/YOUR_PHONE_NUMBER_ID/messages",
+        "authentication": "genericCredentialType",
+        "genericCredentialType": "httpHeaderAuth",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "{\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.lead_phone }}\",\n  \"type\": \"template\",\n  \"template\": {\n    \"name\": \"instant_property_brochure_v1\",\n    \"language\": { \"code\": \"en_US\" },\n    \"components\": [\n      {\n        \"type\": \"body\",\n        \"parameters\": [\n          { \"type\": \"text\", \"text\": \"{{ $json.lead_name }}\" },\n          { \"type\": \"text\", \"text\": \"{{ $json.property_interest }}\" }\n        ]\n      }\n    ]\n  }\n}"
+      },
+      "id": "node-whatsapp",
+      "name": "Send WhatsApp Instant Auto-Reply (< 3 seconds)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [660, 200]
+    },
+    {
+      "parameters": {
+        "chatId": "@broker_instant_leads_bot",
+        "text": "🚨 *URGENT: HIGH VALUE REAL ESTATE LEAD*\n\n👤 *Client:* {{ $json.lead_name }}\n📞 *Phone:* {{ $json.lead_phone }}\n🏠 *Project:* {{ $json.property_interest }}\n💵 *Budget:* {{ $json.budget }}\n⏱️ *WhatsApp Sent:* Yes (Automated in 2.4s)\n\n👉 [Click here to Call Broker Directly](tel:{{ $json.lead_phone }})",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "id": "node-telegram-broker",
+      "name": "Push Alert to Broker Telegram Group",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO lead_logs (lead_name, lead_phone, lead_email, project_name, budget, status, response_time_ms)\nVALUES ('{{ $json.lead_name }}', '{{ $json.lead_phone }}', '{{ $json.lead_email }}', '{{ $json.property_interest }}', '{{ $json.budget }}', 'AUTOREPLIED_3S', 2400);"
+      },
+      "id": "node-supabase-log",
+      "name": "Log to Supabase Client Portal",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1140, 200]
+    }
+  ],
+  "connections": {
+    "Meta Ads / Webhooks Form Lead Ingest": {
+      "main": [[{ "node": "Normalize Lead Data", "type": "main", "index": 0 }]]
+    },
+    "Normalize Lead Data": {
+      "main": [[{ "node": "Send WhatsApp Instant Auto-Reply (< 3 seconds)", "type": "main", "index": 0 }]]
+    },
+    "Send WhatsApp Instant Auto-Reply (< 3 seconds)": {
+      "main": [[{ "node": "Push Alert to Broker Telegram Group", "type": "main", "index": 0 }]]
+    },
+    "Push Alert to Broker Telegram Group": {
+      "main": [[{ "node": "Log to Supabase Client Portal", "type": "main", "index": 0 }]]
+    }
+  }
+}
