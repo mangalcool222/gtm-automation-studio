@@ -1,0 +1,70 @@
+{
+  "name": "05 - Google Sheets & Excel Automatic Lead Sync Engine",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-sheets-ingest",
+        "options": {}
+      },
+      "id": "node-sheets-webhook",
+      "name": "Inbound Lead Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID_HERE",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Inbound Leads Stream",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead Name": "={{ $json.body.name }}",
+            "Phone Number": "={{ $json.body.phone }}",
+            "Email": "={{ $json.body.email }}",
+            "Project / Niche": "={{ $json.body.property || $json.body.niche }}",
+            "Budget": "={{ $json.body.budget }}",
+            "AI Score": "={{ $json.body.score || 85 }}",
+            "Timestamp": "={{ $now.toFormat('yyyy-MM-dd HH:mm:ss') }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "node-google-sheet-append",
+      "name": "Append Row to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [460, 200]
+    },
+    {
+      "parameters": {
+        "chatId": "@leads_excel_bot",
+        "text": "📊 *LEAD AUTOMATICALLY APPENDED TO GOOGLE SHEET*\n\n👤 *Client:* {{ $json.body.name }}\n📞 *Phone:* {{ $json.body.phone }}\n📑 *Sheet Updated:* Google Sheet Row #{{ $json.rowNumber || 'Auto' }}",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "id": "node-telegram-sheet-alert",
+      "name": "Telegram Sheet Notification",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [720, 200]
+    }
+  ],
+  "connections": {
+    "Inbound Lead Webhook": {
+      "main": [[{ "node": "Append Row to Google Sheets", "type": "main", "index": 0 }]]
+    },
+    "Append Row to Google Sheets": {
+      "main": [[{ "node": "Telegram Sheet Notification", "type": "main", "index": 0 }]]
+    }
+  }
+}

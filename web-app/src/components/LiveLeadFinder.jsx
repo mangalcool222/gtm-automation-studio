@@ -215,9 +215,34 @@ export default function LiveLeadFinder() {
     setTimeout(() => setCopiedPitchId(null), 2000);
   };
 
-  const handlePushToPipeline = (leadId) => {
-    setPushedLeadId(leadId);
-    setTimeout(() => setPushedLeadId(null), 2500);
+  const handleExportCsv = () => {
+    const headers = ['Lead ID', 'Name', 'Title', 'Company', 'Email', 'Phone', 'Ad Spend USD', 'Ad Spend INR', 'Location', 'Niche', 'Website', 'LinkedIn', 'Instagram', 'Detected Leak'];
+    const rows = filteredLeads.map((l) => [
+      l.id,
+      `"${l.name}"`,
+      `"${l.title}"`,
+      `"${l.company}"`,
+      l.email,
+      `"${l.phone}"`,
+      l.adSpendUsd,
+      Math.round(l.adSpendUsd * usdToInr),
+      `"${l.location}"`,
+      `"${l.niche}"`,
+      l.website,
+      l.linkedin,
+      l.instagram,
+      `"${l.detectedLeak.replace(/"/g, '""')}"`
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `gtm-leads-export-${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -242,16 +267,26 @@ export default function LiveLeadFinder() {
           </p>
         </div>
 
-        {/* Currency Quick Converter Widget */}
-        <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono flex items-center gap-4">
-          <div>
-            <div className="text-[10px] text-slate-500">CONVERSION RATE</div>
-            <div className="text-cyan-400 font-bold">$1 USD = ₹{usdToInr} INR</div>
-          </div>
-          <div className="h-6 w-px bg-slate-800"></div>
-          <div>
-            <div className="text-[10px] text-slate-500">TARGET TICKET SIZE</div>
-            <div className="text-emerald-400 font-bold">$1,500 - $3,000 / ₹1.25L - ₹2.5L</div>
+        {/* Actions & Currency Widget */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExportCsv}
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs shadow-lg shadow-emerald-500/20 transition-all cursor-pointer"
+          >
+            <Download className="w-4 h-4" />
+            Export Leads to Excel (.csv)
+          </button>
+
+          <div className="hidden sm:flex bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono items-center gap-4">
+            <div>
+              <div className="text-[10px] text-slate-500">CONVERSION RATE</div>
+              <div className="text-cyan-400 font-bold">$1 USD = ₹{usdToInr} INR</div>
+            </div>
+            <div className="h-6 w-px bg-slate-800"></div>
+            <div>
+              <div className="text-[10px] text-slate-500">TARGET TICKET SIZE</div>
+              <div className="text-emerald-400 font-bold">$1,500 - $3,000 / ₹1.25L - ₹2.5L</div>
+            </div>
           </div>
         </div>
       </div>
