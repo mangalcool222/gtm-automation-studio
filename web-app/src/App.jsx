@@ -11,7 +11,7 @@ import LoomPitchGenerator from './components/LoomPitchGenerator';
 import TrelloApolloSetupGuide from './components/TrelloApolloSetupGuide';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('sheet');
+  const [activeTab, setActiveTab] = useState('finder');
 
   const handleStartDemo = () => {
     setActiveTab('simulator');
