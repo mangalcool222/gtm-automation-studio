@@ -1,8 +1,9 @@
 import React from 'react';
-import { Search, Zap, ShieldCheck, Cpu, Code2, Calculator, LayoutDashboard, FileJson, Video, Kanban } from 'lucide-react';
+import { Search, Zap, ShieldCheck, Cpu, Code2, Calculator, LayoutDashboard, FileJson, Video, Kanban, FileSpreadsheet } from 'lucide-react';
 
 export default function Header({ activeTab, setActiveTab }) {
   const tabs = [
+    { id: 'sheet', label: '📈 Live Google Sheet Sync', icon: FileSpreadsheet },
     { id: 'finder', label: '🔍 Find Leads Now (Apollo)', icon: Search },
     { id: 'simulator', label: '⚡ Live 3s Lead Simulator', icon: Zap },
     { id: 'dashboard', label: '📊 White-Label Client Portal', icon: LayoutDashboard },
@@ -54,11 +55,11 @@ export default function Header({ activeTab, setActiveTab }) {
                 onClick={() => handleTabClick(tab.id)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
                   isActive
-                    ? 'bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-lg shadow-cyan-500/25 ring-1 ring-cyan-400/50'
+                    ? 'bg-gradient-to-r from-emerald-500 via-teal-600 to-cyan-600 text-slate-950 shadow-lg shadow-emerald-500/25 ring-1 ring-emerald-400/50'
                     : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/80'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-slate-950' : 'text-slate-400'}`} />
                 {tab.label}
               </button>
             );

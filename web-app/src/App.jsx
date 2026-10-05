@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Header from './components/Header';
 import HeroSection from './components/HeroSection';
+import GoogleSheetLiveSync from './components/GoogleSheetLiveSync';
 import LiveLeadFinder from './components/LiveLeadFinder';
 import LiveLeadSimulator from './components/LiveLeadSimulator';
 import ClientLeadDashboard from './components/ClientLeadDashboard';
@@ -10,7 +11,7 @@ import LoomPitchGenerator from './components/LoomPitchGenerator';
 import TrelloApolloSetupGuide from './components/TrelloApolloSetupGuide';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('finder');
+  const [activeTab, setActiveTab] = useState('sheet');
 
   const handleStartDemo = () => {
     setActiveTab('simulator');
@@ -32,6 +33,7 @@ export default function App() {
 
         {/* Scroll Target Anchor for Tabs */}
         <div id="tab-content-root" className="pt-4 scroll-mt-24 transition-all duration-300">
+          {activeTab === 'sheet' && <GoogleSheetLiveSync />}
           {activeTab === 'finder' && <LiveLeadFinder />}
           {activeTab === 'simulator' && <LiveLeadSimulator />}
           {activeTab === 'dashboard' && <ClientLeadDashboard />}
