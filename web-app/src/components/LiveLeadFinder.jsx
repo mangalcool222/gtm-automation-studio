@@ -215,6 +215,8 @@ export default function LiveLeadFinder() {
     setTimeout(() => setCopiedPitchId(null), 2000);
   };
 
+  const [exportedFinderCsv, setExportedFinderCsv] = useState(false);
+
   const handleExportCsv = () => {
     const headers = ['Lead ID', 'Name', 'Title', 'Company', 'Email', 'Phone', 'Ad Spend USD', 'Ad Spend INR', 'Location', 'Niche', 'Website', 'LinkedIn', 'Instagram', 'Detected Leak'];
     const rows = filteredLeads.map((l) => [
@@ -234,15 +236,31 @@ export default function LiveLeadFinder() {
       `"${l.detectedLeak.replace(/"/g, '""')}"`
     ]);
 
-    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `gtm-leads-export-${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const csvString = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const filename = `gtm-leads-export-${new Date().toISOString().slice(0, 10)}.csv`;
+
+    try {
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      const encodedUri = encodeURI(`data:text/csv;charset=utf-8,${csvString}`);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    setExportedFinderCsv(true);
+    setTimeout(() => setExportedFinderCsv(false), 2500);
   };
 
   return (
@@ -271,10 +289,14 @@ export default function LiveLeadFinder() {
         <div className="flex items-center gap-3">
           <button
             onClick={handleExportCsv}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs shadow-lg shadow-emerald-500/20 transition-all cursor-pointer"
+            className={`flex items-center gap-2 font-bold px-4 py-2.5 rounded-xl text-xs shadow-lg transition-all cursor-pointer ${
+              exportedFinderCsv
+                ? 'bg-emerald-400 text-slate-950 shadow-emerald-400/30 font-extrabold'
+                : 'bg-emerald-600 hover:bg-emerald-500 text-slate-950 shadow-emerald-500/20'
+            }`}
           >
-            <Download className="w-4 h-4" />
-            Export Leads to Excel (.csv)
+            {exportedFinderCsv ? <Check className="w-4 h-4 text-slate-950" /> : <Download className="w-4 h-4" />}
+            {exportedFinderCsv ? 'Downloaded CSV!' : 'Export Leads to Excel (.csv)'}
           </button>
 
           <div className="hidden sm:flex bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono items-center gap-4">

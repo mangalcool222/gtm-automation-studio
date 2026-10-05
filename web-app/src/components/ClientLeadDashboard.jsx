@@ -111,7 +111,9 @@ export default function ClientLeadDashboard() {
 
   const filteredLeads = filter === 'ALL' ? leads : leads.filter((l) => l.tier === filter);
 
-  // Functional CSV Export
+  const [exportedCsv, setExportedCsv] = useState(false);
+
+  // Functional CSV Export (Cross-Browser Compatible)
   const handleExportCsv = () => {
     const headers = ['Lead ID', 'Name', 'Phone', 'Email', 'Project / Interest', 'Budget', 'Niche', 'AI Score', 'Tier', 'Status', 'Response Time', 'Timestamp'];
     const rows = filteredLeads.map((l) => [
@@ -129,15 +131,31 @@ export default function ClientLeadDashboard() {
       `"${l.timestamp}"`
     ]);
 
-    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `client-lead-stream-${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const csvString = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const filename = `client-lead-stream-${new Date().toISOString().slice(0, 10)}.csv`;
+
+    try {
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      const encodedUri = encodeURI(`data:text/csv;charset=utf-8,${csvString}`);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    setExportedCsv(true);
+    setTimeout(() => setExportedCsv(false), 2500);
   };
 
   const handleCopyWebhook = () => {
@@ -174,10 +192,14 @@ export default function ClientLeadDashboard() {
         <div className="flex items-center gap-3">
           <button
             onClick={handleExportCsv}
-            className="bg-slate-900 hover:bg-slate-800 text-slate-300 px-3 py-2 rounded-xl text-xs font-semibold border border-slate-800 flex items-center gap-2 transition-all cursor-pointer"
+            className={`px-3.5 py-2 rounded-xl text-xs font-semibold border flex items-center gap-2 transition-all cursor-pointer ${
+              exportedCsv
+                ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-bold shadow-md'
+                : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-800'
+            }`}
           >
-            <Download className="w-3.5 h-3.5 text-cyan-400" />
-            Export CSV
+            {exportedCsv ? <Check className="w-3.5 h-3.5 text-slate-950" /> : <Download className="w-3.5 h-3.5 text-cyan-400" />}
+            {exportedCsv ? 'Downloaded CSV!' : 'Export CSV'}
           </button>
           <button
             onClick={() => setShowWebhookModal(true)}
