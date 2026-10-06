@@ -190,24 +190,10 @@ export default function ClientLeadDashboard() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={handleExportCsv}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold border flex items-center gap-2 transition-all cursor-pointer ${
-              exportedCsv
-                ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-bold shadow-md'
-                : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-800'
-            }`}
-          >
-            {exportedCsv ? <Check className="w-3.5 h-3.5 text-slate-950" /> : <Download className="w-3.5 h-3.5 text-cyan-400" />}
-            {exportedCsv ? 'Downloaded CSV!' : 'Export CSV'}
-          </button>
-          <button
-            onClick={() => setShowWebhookModal(true)}
-            className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-cyan-500/20 transition-all cursor-pointer flex items-center gap-1.5"
-          >
-            <Radio className="w-3.5 h-3.5 animate-pulse" />
-            + Connect New Ad Webhook
-          </button>
+          <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-mono text-xs px-3.5 py-2 rounded-xl flex items-center gap-2 font-bold shadow-sm shrink-0">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            Live Automated Sync Active
+          </span>
         </div>
       </div>
 
