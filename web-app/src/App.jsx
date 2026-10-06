@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Header from './components/Header';
 import HeroSection from './components/HeroSection';
+import InteractiveWorkflowDiagram from './components/InteractiveWorkflowDiagram';
 import GoogleSheetLiveSync from './components/GoogleSheetLiveSync';
 import LiveLeadFinder from './components/LiveLeadFinder';
 import LiveLeadSimulator from './components/LiveLeadSimulator';
@@ -11,7 +12,7 @@ import LoomPitchGenerator from './components/LoomPitchGenerator';
 import TrelloApolloSetupGuide from './components/TrelloApolloSetupGuide';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('finder');
+  const [activeTab, setActiveTab] = useState('workflow');
 
   const handleStartDemo = () => {
     setActiveTab('simulator');
@@ -33,6 +34,7 @@ export default function App() {
 
         {/* Scroll Target Anchor for Tabs */}
         <div id="tab-content-root" className="pt-4 scroll-mt-24 transition-all duration-300">
+          {activeTab === 'workflow' && <InteractiveWorkflowDiagram />}
           {activeTab === 'sheet' && <GoogleSheetLiveSync />}
           {activeTab === 'finder' && <LiveLeadFinder />}
           {activeTab === 'simulator' && <LiveLeadSimulator />}
@@ -51,10 +53,11 @@ export default function App() {
             <span className="font-bold text-slate-300">GTM Technical Systems Studio</span> • Built with Next.js, n8n, Apollo & Supabase architecture
           </div>
           <div className="font-mono text-[11px] text-cyan-400">
-            Target Retainers: $1,500 - $3,000 / month
+            Target Retainers: $1,500 - $3,000 / month (₹1.25L - ₹2.50L)
           </div>
         </div>
       </footer>
     </div>
   );
 }
+
