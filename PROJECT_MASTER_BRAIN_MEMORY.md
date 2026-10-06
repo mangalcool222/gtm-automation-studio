@@ -36,7 +36,7 @@
 ## 🚀 3. Real-World Client Setup Protocol (e.g. `creatorlytics.cloud`)
 
 1. **Step 1: Webhook Trigger in n8n (`https://n8n.trackkaroai.com/home/workflows`)**:
-   - Create Webhook node listening on `POST` to `https://gtm.trackkaroai.com/api/webhooks/lead-inbound`.
+   - Create Webhook node listening on `POST` to `https://n8n.trackkaroai.com/webhook/lead-inbound`.
 2. **Step 2: Connect Client Website Form**:
    - Point form `action` URL or Webhook plugin to n8n Webhook endpoint.
 3. **Step 3: Telegram Sound Alert Bot**:

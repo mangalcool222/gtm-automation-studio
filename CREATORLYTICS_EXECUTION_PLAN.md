@@ -30,7 +30,7 @@ To activate your 3-Second Automated WhatsApp & Telegram Lead Engine, please prov
    - HTTP Method: `POST`
    - Path: `creatorlytics-lead-inbound`
    - Production Webhook URL:  
-     `https://gtm.trackkaroai.com/api/webhooks/creatorlytics-lead-inbound`
+     `https://n8n.trackkaroai.com/webhook/creatorlytics-lead-inbound`
 
 ---
 
@@ -44,7 +44,7 @@ Add this HTML lead capture form code to `creatorlytics.cloud`:
   <h3 style="margin-bottom:8px; font-weight:800;">⚡ Get Creatorlytics Growth & Monetization PDF Guide</h3>
   <p style="font-size:12px; color:#9ca3af; margin-bottom:16px;">Delivered to your WhatsApp in under 3 seconds.</p>
   
-  <form action="https://gtm.trackkaroai.com/api/webhooks/creatorlytics-lead-inbound" method="POST" style="display:flex; flex-direction:column; gap:12px;">
+  <form action="https://n8n.trackkaroai.com/webhook/creatorlytics-lead-inbound" method="POST" style="display:flex; flex-direction:column; gap:12px;">
     <input type="text" name="full_name" placeholder="Full Name" required style="background:#111827; border:1px solid #374151; padding:10px; border-radius:8px; color:#fff;" />
     <input type="tel" name="phone_number" placeholder="WhatsApp Phone Number (+91...)" required style="background:#111827; border:1px solid #374151; padding:10px; border-radius:8px; color:#fff;" />
     <input type="email" name="email" placeholder="Email Address" required style="background:#111827; border:1px solid #374151; padding:10px; border-radius:8px; color:#fff;" />
