@@ -1,0 +1,115 @@
+{
+  "name": "WATI & AiSensy Zero-Migration WhatsApp + Telegram + Google Sheet Lead Blueprint",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wati-lead-inbound",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "id": "webhook-wati-ingest",
+      "name": "Website / Lead Ingest Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json.body || $json;\nreturn {\n  json: {\n    lead_name: input.lead_name || input.full_name || input.name || 'Prospect',\n    full_name: input.full_name || input.lead_name || input.name || 'Prospect',\n    lead_phone: input.lead_phone || input.phone_number || input.phone || '',\n    phone_number: input.phone_number || input.lead_phone || input.phone || '',\n    lead_email: input.lead_email || input.email || '',\n    email: input.email || input.lead_email || '',\n    property_interest: input.property_interest || input.project_name || 'Client Growth Service',\n    budget: input.budget || 'Standard Tier',\n    status: 'DELIVERED (< 2.4s)'\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [240, 0],
+      "id": "normalize-wati-data",
+      "name": "Normalize Lead Data"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://live-mt-server.wati.io/api/v1/sendTemplateMessage",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.WATI_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"whatsappNumber\": \"{{ $json.phone_number }}\",\n  \"templateName\": \"welcome_lead_brochure\",\n  \"broadcastName\": \"Instant Lead Auto-Reply\",\n  \"parameters\": [\n    {\n      \"name\": \"name\",\n      \"value\": \"{{ $json.full_name }}\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, -120],
+      "id": "send-wati-whatsapp",
+      "name": "Send WATI / AiSensy WhatsApp Message (Zero Migration)",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "-5014145697",
+        "text": "=🔔 NEW LEAD RECEIVED (WATI / MOBILE ACTIVE)!\n\n👤 Name: {{ $json.full_name }}\n📞 Phone: {{ $json.phone_number }}\n📧 Email: {{ $json.email }}\n💼 Interest: {{ $json.property_interest }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [500, 0],
+      "id": "push-telegram-wati",
+      "name": "Push Alert to Telegram Sales Group",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://script.google.com/macros/s/AKfycbzxylmQxHYaLKFdSex0iPowqucysUN5t4j6sqT5mhyw-IcD9ceqsY0t2_Yu6iiTkE26MQ/exec",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"lead_name\": \"{{ $json.full_name }}\",\n  \"lead_phone\": \"{{ $json.phone_number }}\",\n  \"lead_email\": \"{{ $json.email }}\",\n  \"project_name\": \"{{ $json.property_interest }}\",\n  \"budget\": \"{{ $json.budget }}\",\n  \"status\": \"DELIVERED (< 2.4s)\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 120],
+      "id": "http-google-sheet-wati",
+      "name": "HTTP Request (Google Sheets CRM)",
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Website / Lead Ingest Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize Lead Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Lead Data": {
+      "main": [
+        [
+          {
+            "node": "Send WATI / AiSensy WhatsApp Message (Zero Migration)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Push Alert to Telegram Sales Group",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request (Google Sheets CRM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

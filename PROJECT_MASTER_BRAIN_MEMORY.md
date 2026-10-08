@@ -52,6 +52,7 @@
 
 - 📄 **Client Proposal Deck**: [`CLIENT_PITCH_PROPOSAL.html`](./agency-client-templates/CLIENT_PITCH_PROPOSAL.html)
 - 📋 **Client Onboarding Checklist**: [`CLIENT_ONBOARDING_CHECKLIST.md`](./agency-client-templates/client-onboarding-docs/CLIENT_ONBOARDING_CHECKLIST.md)
+- 📗 **WhatsApp 3 Client Solutions Master SOP**: [`AGENCY_CLIENT_WHATSAPP_SOLUTIONS_MASTER_SOP.md`](./agency-client-templates/AGENCY_CLIENT_WHATSAPP_SOLUTIONS_MASTER_SOP.md)
 - 💬 **WhatsApp Copy Templates**: [`WHATSAPP_TEMPLATES.md`](./agency-client-templates/whatsapp-copy-templates/WHATSAPP_TEMPLATES.md)
 - 📊 **Google Sheet CRM Setup & Apps Script**: [`GOOGLE_SHEET_CRM_TEMPLATE.md`](./agency-client-templates/google-sheet-crm-setup/GOOGLE_SHEET_CRM_TEMPLATE.md)
 - ⚡ **n8n Workflow JSON Blueprints**: `./n8n-blueprints/`
