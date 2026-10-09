@@ -2,88 +2,120 @@
 
 @layer base {
   :root {
-    --bg-main: #090d16;
-    --bg-card: rgba(17, 24, 39, 0.7);
-    --border-card: rgba(255, 255, 255, 0.08);
-    --neon-cyan: #00f2fe;
-    --neon-purple: #7928ca;
-    --neon-emerald: #10b981;
-    --neon-amber: #f59e0b;
+    --bg-main: #05070e;
+    --bg-card: rgba(13, 18, 30, 0.65);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-hover: rgba(0, 242, 254, 0.25);
+    --apple-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --apple-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   body {
     background-color: var(--bg-main);
-    color: #f3f4f6;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    color: #f8fafc;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
     overflow-x: hidden;
+    letter-spacing: -0.011em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
+/* Apple-style Instant Tactile Press Feedback */
+button, .btn-tactile, input[type="submit"], [role="button"] {
+  touch-action: manipulation;
+  transition: transform 0.12s var(--apple-ease), opacity 0.12s ease-out, background-color 0.2s var(--apple-ease), border-color 0.2s var(--apple-ease), box-shadow 0.2s var(--apple-ease);
+}
+
+button:active:not(:disabled), .btn-tactile:active:not(:disabled), input[type="submit"]:active:not(:disabled) {
+  transform: scale(0.972) translateY(0.5px) !important;
+  opacity: 0.92;
+}
+
+/* Apple Translucent Glass Materials with Specular Edge */
 .glass-panel {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  background: rgba(10, 15, 26, 0.72);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    0 20px 50px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
 }
 
 .glass-card {
-  background: rgba(30, 41, 59, 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(16, 23, 38, 0.55);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 
+    0 10px 30px -10px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  transition: all 0.28s var(--apple-ease);
 }
 
 .glass-card:hover {
-  border-color: rgba(0, 242, 254, 0.3);
-  box-shadow: 0 0 25px rgba(0, 242, 254, 0.15);
+  background: rgba(20, 30, 50, 0.75);
+  border-color: rgba(0, 242, 254, 0.28);
+  box-shadow: 
+    0 20px 40px -12px rgba(0, 242, 254, 0.15),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
 }
 
+.glass-pill {
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+}
+
+/* Futuristic Glow Effects */
 .glow-cyan {
-  box-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
+  box-shadow: 0 0 30px -5px rgba(0, 242, 254, 0.35);
 }
 
 .glow-purple {
-  box-shadow: 0 0 20px rgba(121, 40, 202, 0.3);
+  box-shadow: 0 0 30px -5px rgba(121, 40, 202, 0.35);
 }
 
 .glow-emerald {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 30px -5px rgba(16, 185, 129, 0.35);
 }
 
 .gradient-text-cyan {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, #a5f3fc 0%, #38bdf8 40%, #00f2fe 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .gradient-text-purple {
-  background: linear-gradient(135deg, #b92b27 0%, #1565C0 100%);
-  background: linear-gradient(135deg, #d8b4fe 0%, #7928ca 100%);
+  background: linear-gradient(135deg, #e9d5ff 0%, #c084fc 40%, #7928ca 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .gradient-text-gold {
-  background: linear-gradient(135deg, #fef08a 0%, #f59e0b 100%);
+  background: linear-gradient(135deg, #fef08a 0%, #fde047 40%, #f59e0b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .phone-mockup {
-  border: 12px solid #1e293b;
-  border-radius: 36px;
-  background: #0f172a;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  border: 10px solid #131b2e;
+  border-radius: 32px;
+  background: #080c16;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
   position: relative;
   overflow: hidden;
 }
 
 .phone-header {
-  background: #111827;
+  background: rgba(15, 22, 38, 0.95);
+  backdrop-filter: blur(12px);
   padding: 12px 16px;
-  border-bottom: 1px solid #1f2937;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -92,44 +124,55 @@
 .whatsapp-bubble {
   background: #005c4b;
   color: #e9edef;
-  border-radius: 12px 12px 0px 12px;
-  padding: 10px 14px;
-  max-width: 85%;
+  border-radius: 14px 14px 2px 14px;
+  padding: 12px 16px;
+  max-width: 88%;
   font-size: 13px;
-  line-height: 1.4;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  line-height: 1.45;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  animation: popIn 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .telegram-bubble {
   background: #182533;
   color: #f5f5f5;
-  border-radius: 12px 12px 12px 0px;
-  padding: 10px 14px;
+  border-radius: 14px 14px 14px 2px;
+  padding: 12px 16px;
   max-width: 90%;
   font-size: 13px;
-  line-height: 1.4;
+  line-height: 1.45;
   border-left: 3px solid #2AABEE;
-  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  animation: popIn 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @keyframes popIn {
-  0% { transform: scale(0.9); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+  0% { transform: scale(0.92) translateY(6px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
 }
 
-/* Custom Scrollbar */
+@keyframes floatAmbient {
+  0%, 100% { transform: translateY(0px) scale(1); opacity: 0.15; }
+  50% { transform: translateY(-20px) scale(1.08); opacity: 0.25; }
+}
+
+.animate-float-slow {
+  animation: floatAmbient 12s ease-in-out infinite;
+}
+
+/* Custom Minimalist Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #05070e;
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #00f2fe;
 }
+
