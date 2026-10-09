@@ -1,63 +1,63 @@
 {
-  "name": "WATI & AiSensy Zero-Migration WhatsApp + Telegram + Google Sheet Lead Blueprint",
+  "name": "AiSensy & WATI Zero-Migration WhatsApp + Telegram + Google Sheet Lead Blueprint",
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "wati-lead-inbound",
+        "path": "aisensy-lead-inbound",
         "options": {}
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [0, 0],
-      "id": "webhook-wati-ingest",
+      "id": "webhook-aisensy-ingest",
       "name": "Website / Lead Ingest Webhook"
     },
     {
       "parameters": {
-        "jsCode": "const input = $json.body || $json;\nreturn {\n  json: {\n    lead_name: input.lead_name || input.full_name || input.name || 'Prospect',\n    full_name: input.full_name || input.lead_name || input.name || 'Prospect',\n    lead_phone: input.lead_phone || input.phone_number || input.phone || '',\n    phone_number: input.phone_number || input.lead_phone || input.phone || '',\n    lead_email: input.lead_email || input.email || '',\n    email: input.email || input.lead_email || '',\n    property_interest: input.property_interest || input.project_name || 'Client Growth Service',\n    budget: input.budget || 'Standard Tier',\n    status: 'DELIVERED (< 2.4s)'\n  }\n};"
+        "jsCode": "const input = $json.body || $json;\nconst cleanPhone = (input.lead_phone || input.phone_number || input.phone || '').replace(/[^0-9]/g, '');\nconst formattedPhone = cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone;\n\nreturn {\n  json: {\n    lead_name: input.lead_name || input.full_name || input.name || 'Prospect',\n    full_name: input.full_name || input.lead_name || input.name || 'Prospect',\n    lead_phone: formattedPhone,\n    phone_number: formattedPhone,\n    lead_email: input.lead_email || input.email || '',\n    email: input.email || input.lead_email || '',\n    property_interest: input.property_interest || input.project_name || 'Client Growth Service',\n    budget: input.budget || 'Standard Tier',\n    status: 'DELIVERED (< 2.4s)'\n  }\n};\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [240, 0],
-      "id": "normalize-wati-data",
+      "id": "normalize-aisensy-data",
       "name": "Normalize Lead Data"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://live-mt-server.wati.io/api/v1/sendTemplateMessage",
+        "url": "https://backend.aisensy.com/campaign/t1/api/v2",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
-              "name": "Authorization",
-              "value": "Bearer {{ $env.WATI_API_KEY }}"
+              "name": "Content-Type",
+              "value": "application/json"
             }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"whatsappNumber\": \"{{ $json.phone_number }}\",\n  \"templateName\": \"welcome_lead_brochure\",\n  \"broadcastName\": \"Instant Lead Auto-Reply\",\n  \"parameters\": [\n    {\n      \"name\": \"name\",\n      \"value\": \"{{ $json.full_name }}\"\n    }\n  ]\n}",
+        "jsonBody": "={\n  \"apiKey\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhYzg4NGJiMWVmZmRmMWNiOWI2OGZlMiIsIm5hbWUiOiJHVE0gVGVjaG5pY2FsIFN5c3RlbXMgU3R1ZGlvIiwiYXBwTmFtZSI6IkFpU2Vuc3kiLCJjbGllbnRJZCI6IjZhYzg4NGJiMWVmZmRmMWNiOWI2OGZkZCIsImFjdGl2ZVBsYW4iOiJGUkVFX0ZPUkVWRVIiLCJpYXQiOjE3OTE1MjY2NTZ9.R7HaSVIuS0mq_niJn6fsb5BvHjcd4-bqf_2SFLOSGA0\",\n  \"campaignName\": \"welcome_lead_auto_reply\",\n  \"destination\": \"+{{ $json.phone_number }}\",\n  \"userName\": \"{{ $json.full_name }}\",\n  \"templateParams\": [\n    \"{{ $json.full_name }}\"\n  ]\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [500, -120],
-      "id": "send-wati-whatsapp",
-      "name": "Send WATI / AiSensy WhatsApp Message (Zero Migration)",
+      "id": "send-aisensy-whatsapp",
+      "name": "Send AiSensy WhatsApp Auto-Reply (Zero Migration)",
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
         "chatId": "-5014145697",
-        "text": "=🔔 NEW LEAD RECEIVED (WATI / MOBILE ACTIVE)!\n\n👤 Name: {{ $json.full_name }}\n📞 Phone: {{ $json.phone_number }}\n📧 Email: {{ $json.email }}\n💼 Interest: {{ $json.property_interest }}",
+        "text": "=🔔 NEW LEAD RECEIVED (AISENSY / WATI READY)!\n\n👤 Name: {{ $json.full_name }}\n📞 Phone: +{{ $json.phone_number }}\n📧 Email: {{ $json.email }}\n💼 Interest: {{ $json.property_interest }}",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [500, 0],
-      "id": "push-telegram-wati",
+      "id": "push-telegram-aisensy",
       "name": "Push Alert to Telegram Sales Group",
       "onError": "continueRegularOutput"
     },
@@ -73,7 +73,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [500, 120],
-      "id": "http-google-sheet-wati",
+      "id": "http-google-sheet-aisensy",
       "name": "HTTP Request (Google Sheets CRM)",
       "onError": "continueRegularOutput"
     }
@@ -94,7 +94,7 @@
       "main": [
         [
           {
-            "node": "Send WATI / AiSensy WhatsApp Message (Zero Migration)",
+            "node": "Send AiSensy WhatsApp Auto-Reply (Zero Migration)",
             "type": "main",
             "index": 0
           },
