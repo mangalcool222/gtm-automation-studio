@@ -15,7 +15,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const input = $json.body || $json;\n\n// Format and clean phone number\nconst rawPhone = (input.phone_number || input.lead_phone || input.phone || '').replace(/[^0-9]/g, '');\nconst cleanPhone = rawPhone.length === 10 ? '91' + rawPhone : rawPhone;\n\nreturn {\n  json: {\n    full_name: input.full_name || input.lead_name || input.name || 'Direct Agency Prospect',\n    company: input.company || input.business_name || 'Independent Business',\n    phone_number: cleanPhone,\n    email: input.email || input.lead_email || 'Not Provided',\n    budget: input.budget || input.adSpend || 'Standard Tier',\n    status: 'NEW_AGENCY_INQUIRY',\n    timestamp: new Date().toISOString()\n  }\n};\n"
+        "jsCode": "const input = $json.body || $json;\n\n// Format and clean phone number\nconst rawPhone = (input.phone_number || input.lead_phone || input.phone || '').replace(/[^0-9]/g, '');\nconst cleanPhone = rawPhone.length === 10 ? '91' + rawPhone : rawPhone;\n\n// Detect Region / Location\nconst tz = input.timezone || 'Asia/Kolkata';\nlet region = 'India 🇮🇳 (Asia/Kolkata)';\nif (cleanPhone.startsWith('1') || tz.includes('America') || tz.includes('New_York') || tz.includes('Los_Angeles')) {\n  region = 'USA / North America 🇺🇸 (' + tz + ')';\n} else if (cleanPhone.startsWith('44') || tz.includes('London') || tz.includes('Europe')) {\n  region = 'UK / Europe 🇬🇧 (' + tz + ')';\n} else if (cleanPhone.startsWith('971') || tz.includes('Dubai')) {\n  region = 'UAE / Middle East 🇦🇪 (' + tz + ')';\n} else if (cleanPhone.startsWith('65') || tz.includes('Singapore')) {\n  region = 'Singapore 🇸🇬 (' + tz + ')';\n} else if (cleanPhone.startsWith('91') || tz.includes('Kolkata') || tz.includes('Calcutta')) {\n  region = 'India 🇮🇳 (' + tz + ')';\n} else {\n  region = tz;\n}\n\n// Auto-calculate Date, Day, Year, Time in IST (Indian Standard Time)\nconst now = new Date();\nconst days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];\nconst months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];\nconst istOffset = 5.5 * 60 * 60 * 1000;\nconst istDate = new Date(now.getTime() + istOffset);\n\nconst dayName = days[istDate.getUTCDay()];\nconst dateFormatted = `${String(istDate.getUTCDate()).padStart(2, '0')}-${months[istDate.getUTCMonth()]}-${istDate.getUTCFullYear()}`;\n\nlet hours = istDate.getUTCHours();\nconst minutes = String(istDate.getUTCMinutes()).padStart(2, '0');\nconst ampm = hours >= 12 ? 'PM' : 'AM';\nhours = hours % 12;\nhours = hours ? hours : 12;\nconst timeFormatted = `${String(hours).padStart(2, '0')}:${minutes} ${ampm} (IST)`;\n\nreturn {\n  json: {\n    date: dateFormatted,\n    day: dayName,\n    time: timeFormatted,\n    full_name: input.full_name || input.lead_name || input.name || 'Direct Agency Prospect',\n    company: input.company || input.business_name || 'Independent Business',\n    phone_number: cleanPhone,\n    email: input.email || input.lead_email || 'Not Provided',\n    budget: input.budget || input.adSpend || 'Standard Tier',\n    region: region,\n    status: 'NEW_AGENCY_INQUIRY',\n    timestamp: now.toISOString()\n  }\n};\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -26,7 +26,7 @@
     {
       "parameters": {
         "chatId": "-5417070792",
-        "text": "=🚨 *NEW GTM AGENCY CLIENT INQUIRY!* 🚀\n\n👤 *Client Name:* {{ $json.full_name }}\n🏢 *Company:* {{ $json.company }}\n📞 *Phone:* +{{ $json.phone_number }}\n📧 *Email:* {{ $json.email }}\n💰 *Monthly Ad Spend:* {{ $json.budget }}\n\n⚡ *Response SLA:* Call/Connect immediately while intent is active!",
+        "text": "=🚨 *NEW GTM AGENCY CLIENT INQUIRY!* 🚀\n\n📅 *Date & Day:* {{ $json.date }} ({{ $json.day }})\n⏰ *Time:* {{ $json.time }}\n📍 *Region:* {{ $json.region }}\n\n👤 *Client Name:* {{ $json.full_name }}\n🏢 *Company:* {{ $json.company }}\n📞 *Phone:* +{{ $json.phone_number }}\n📧 *Email:* {{ $json.email }}\n💰 *Monthly Ad Spend:* {{ $json.budget }}\n\n⚡ *Response SLA:* Call/Connect immediately while intent is active!",
         "additionalFields": {
           "parse_mode": "Markdown"
         }
@@ -44,7 +44,7 @@
         "url": "https://script.google.com/macros/s/AKfycbxpI58-dQKQ-o4lwZEkdtLz3HF4hCiPcztgqV8HuFO7_M7BLoOSaGsUfAjYwMUhbDkt/exec",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"full_name\": \"{{ $json.full_name }}\",\n  \"company\": \"{{ $json.company }}\",\n  \"phone_number\": \"{{ $json.phone_number }}\",\n  \"email\": \"{{ $json.email }}\",\n  \"budget\": \"{{ $json.budget }}\",\n  \"status\": \"NEW_AGENCY_INQUIRY\"\n}",
+        "jsonBody": "={\n  \"date\": \"{{ $json.date }}\",\n  \"day\": \"{{ $json.day }}\",\n  \"time\": \"{{ $json.time }}\",\n  \"full_name\": \"{{ $json.full_name }}\",\n  \"company\": \"{{ $json.company }}\",\n  \"phone_number\": \"{{ $json.phone_number }}\",\n  \"email\": \"{{ $json.email }}\",\n  \"budget\": \"{{ $json.budget }}\",\n  \"region\": \"{{ $json.region }}\",\n  \"status\": \"NEW_AGENCY_INQUIRY\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
