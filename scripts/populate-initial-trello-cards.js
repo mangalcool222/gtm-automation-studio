@@ -1,7 +1,32 @@
 const https = require('https');
+const fs = require('fs');
+const path = require('path');
 
-const apiKey = "73bfc4ead3175d738d3c8ab2c03220b9";
-const token = "ATTA35032be2ecb2dc5ca13e160bd78c1c57611ffa7d39c0aa8d32907cdff56df2bdA8C04EEC";
+// Auto-load .env if present
+const envPath = path.resolve(__dirname, '../.env');
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, 'utf-8');
+  envContent.split('\n').forEach(line => {
+    const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+    if (match) {
+      const key = match[1];
+      let value = match[2] || '';
+      if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
+      if (value.startsWith("'") && value.endsWith("'")) value = value.slice(1, -1);
+      if (!process.env[key]) process.env[key] = value.trim();
+    }
+  });
+}
+
+const apiKey = process.env.TRELLO_API_KEY;
+const token = process.env.TRELLO_TOKEN;
+
+if (!apiKey || !token) {
+  console.error("❌ ERROR: Missing TRELLO_API_KEY or TRELLO_TOKEN environment variables.");
+  console.error("👉 Please set them in your .env file or export them before running.");
+  process.exit(1);
+}
+
 const scrapedListId = "6ac49f39e638eb6bfa8111bd"; // List 1
 const auditListId = "6ac49f3a9e1ae95b75c1396b";   // List 2
 

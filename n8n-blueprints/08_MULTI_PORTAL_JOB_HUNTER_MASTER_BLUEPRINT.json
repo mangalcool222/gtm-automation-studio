@@ -1,0 +1,331 @@
+{
+  "name": "01 - Multi-Portal Job Hunter Auto-Pilot (Remotive + RemoteOK + YC + WeWorkRemotely -> Gemini AI -> Trello + Telegram + Sheets)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 6
+            }
+          ]
+        }
+      },
+      "id": "trigger-6h",
+      "name": "Every 6 Hours Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        160,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://remotive.com/api/remote-jobs?category=product&limit=25",
+        "options": {}
+      },
+      "id": "fetch-remotive",
+      "name": "1. Fetch Remotive Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        380,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://remoteok.com/api?tag=product-manager",
+        "options": {}
+      },
+      "id": "fetch-remoteok",
+      "name": "2. Fetch RemoteOK Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        380,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://hn.algolia.com/api/v1/search_by_date?tags=job&query=product&hitsPerPage=15",
+        "options": {}
+      },
+      "id": "fetch-yc",
+      "name": "3. Fetch Y Combinator Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        380,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Master Aggregator & Normalizer for Remotive, RemoteOK, and Y Combinator\nconst normalized = [];\n\n// 1. Process Remotive\ntry {\n  const remotiveData = $(\"1. Fetch Remotive Jobs\").first().json;\n  const rJobs = remotiveData.jobs || [];\n  for (const j of rJobs) {\n    normalized.push({\n      title: j.title || '',\n      company_name: j.company_name || 'Startup',\n      url: j.url || '',\n      location: j.candidate_required_location || 'Remote / Global',\n      description: (j.description || '').replace(/<[^>]*>?/gm, '').slice(0, 1000),\n      source: 'Remotive'\n    });\n  }\n} catch (e) {}\n\n// 2. Process RemoteOK\ntry {\n  const remoteokData = $(\"2. Fetch RemoteOK Jobs\").all();\n  for (const item of remoteokData) {\n    const j = item.json;\n    if (j && j.position && j.url) {\n      normalized.push({\n        title: j.position || '',\n        company_name: j.company || 'Startup',\n        url: j.url || '',\n        location: j.location || '100% Remote',\n        description: (j.description || '').replace(/<[^>]*>?/gm, '').slice(0, 1000),\n        source: 'RemoteOK'\n      });\n    }\n  }\n} catch (e) {}\n\n// 3. Process Y Combinator\ntry {\n  const ycData = $(\"3. Fetch Y Combinator Jobs\").first().json;\n  const hits = ycData.hits || [];\n  for (const h of hits) {\n    if (h.title) {\n      normalized.push({\n        title: h.title,\n        company_name: 'YC Backed Startup',\n        url: h.url || `https://news.ycombinator.com/item?id=${h.objectID}`,\n        location: 'Remote / Global',\n        description: (h.story_text || h.comment_text || h.title || '').slice(0, 1000),\n        source: 'Y Combinator'\n      });\n    }\n  }\n} catch (e) {}\n\n// 4. Pre-filter by keywords (APM, PM, Growth, Founder's Office, GTM, Analyst)\nconst validKeywords = ['product', 'apm', 'associate', 'growth', 'gtm', 'founder', 'analyst', 'strategy', 'operations', 'intern'];\nconst excludeSenior = ['director', 'vice president', 'chief ', 'head of', 'lead engineer', 'staff engineer', 'principal'];\n\nconst filtered = normalized.filter(j => {\n  const t = j.title.toLowerCase();\n  const isMatch = validKeywords.some(k => t.includes(k));\n  const isTooSenior = excludeSenior.some(k => t.includes(k));\n  return isMatch && !isTooSenior;\n});\n\n// 5. Deduplicate by title + company\nconst seen = new Set();\nconst unique = [];\nfor (const j of filtered) {\n  const key = `${j.company_name.toLowerCase()} - ${j.title.toLowerCase()}`;\n  if (!seen.has(key)) {\n    seen.add(key);\n    unique.push(j);\n  }\n}\n\n// Batch top 10 unique roles per 6h run\nreturn unique.slice(0, 10).map(job => ({ json: job }));"
+      },
+      "id": "normalize-all",
+      "name": "Normalize & Combine All Feeds",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key={{GEMINI_API_KEY}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "contents",
+              "value": "={{ [{ parts: [{ text: `You are an expert GTM, Product, Growth & Operations Career Filter for Mangal.\\n\\nREJECT IMMEDIATELY (Respond ONLY with the word 'SKIP') if ANY of the following conditions are met:\\n1. HARD SENIORITY CAP: The role explicitly requires 7+ or 10+ years of experience, VP, Executive, or Principal/Staff level.\\n2. PHYSICAL LOCAL OFFICE REQUIREMENT: Explicitly requires local physical office presence in non-eligible countries (e.g. 'Must relocate to London office', 'In-person NYC office 4 days/week'). Accept Worldwide Remote, Remote India, or Global Remote.\\n3. COMPLETELY UNRELATED DOMAIN: Clinical nursing, medical practice, heavy civil hardware.\\n\\nACCEPTABLE (Generate Pitch):\\nAccept all Product Management, APM, Product Ops, Growth, GTM, Founder's Office, Strategy & Ops, Business/Data Analyst, Marketing, AI/Automation Builder roles (0-5 yrs or flexible experience).\\n\\nGenerate a 3-bullet customized pitch for Mangal highlighting:\\n- Product, Growth & Business thinking alignment.\\n- Technical execution & automation (n8n, Python, APIs).\\n- Scrappy 0-to-1 startup mindset.\\n\\nRole: ${$json.title || ''}\\nCompany: ${$json.company_name || ''}\\nSource Portal: ${$json.source || 'Remote Portal'}\\nLocation: ${$json.location || ''}\\nDescription: ${$json.description || ''}` }] }] }}"
+            }
+          ]
+        },
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 4500
+            }
+          }
+        }
+      },
+      "id": "gemini-ai",
+      "name": "Gemini AI Pitch Generator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        860,
+        340
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false
+          },
+          "conditions": [
+            {
+              "id": "check-skip",
+              "leftValue": "={{ $json.candidates[0].content.parts[0].text.trim() }}",
+              "rightValue": "SKIP",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ]
+        }
+      },
+      "id": "filter-skip",
+      "name": "Filter Out Irrelevant Jobs",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.trello.com/1/cards",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "{{TRELLO_API_KEY}}"
+            },
+            {
+              "name": "token",
+              "value": "{{TRELLO_TOKEN}}"
+            },
+            {
+              "name": "idList",
+              "value": "{{TRELLO_WISHLIST_LIST_ID}}"
+            },
+            {
+              "name": "name",
+              "value": "={{ '🔥 ' + $('Normalize & Combine All Feeds').item.json.title + ' - ' + $('Normalize & Combine All Feeds').item.json.company_name + ' [' + $('Normalize & Combine All Feeds').item.json.source + ']' }}"
+            },
+            {
+              "name": "desc",
+              "value": "={{ '### 🎯 Target Role: ' + $('Normalize & Combine All Feeds').item.json.title + '\\n**🏢 Company:** ' + $('Normalize & Combine All Feeds').item.json.company_name + '\\n**🌐 Source:** ' + $('Normalize & Combine All Feeds').item.json.source + '\\n**🔗 Job URL:** ' + $('Normalize & Combine All Feeds').item.json.url + '\\n**📍 Location:** ' + $('Normalize & Combine All Feeds').item.json.location + '\\n\\n---\\n\\n### 🤖 Gemini AI Tailored Pitch & Cold Outreach:\\n' + $json.candidates[0].content.parts[0].text + '\\n\\n---\\n*Auto-ingested via Multi-Portal n8n Engine*' }}"
+            }
+          ]
+        }
+      },
+      "id": "create-trello",
+      "name": "Create Trello Card",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1300,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "-5489183481",
+        "text": "={{ '🚀 *NEW TARGET JOB IDENTIFIED!*\\n\\n📌 *Role:* ' + $('Normalize & Combine All Feeds').item.json.title + '\\n🏢 *Company:* ' + $('Normalize & Combine All Feeds').item.json.company_name + '\\n🌐 *Source:* ' + $('Normalize & Combine All Feeds').item.json.source + '\\n📍 *Location:* ' + $('Normalize & Combine All Feeds').item.json.location + '\\n\\n🔗 *Apply Link:* ' + $('Normalize & Combine All Feeds').item.json.url + '\\n\\n💡 *Gemini Pitch:*\\n' + $json.candidates[0].content.parts[0].text.slice(0, 400) + '...' }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "send-telegram",
+      "name": "Push Telegram Sound Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1300,
+        340
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "1",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://script.google.com/macros/s/AKfycbxUBfYOX-PGMm7HtHhbP56WTtQYhJZqrb8qPvbllvzHKnUXGA8qlLgwN8I0UMa05DdC/exec",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  role: $('Normalize & Combine All Feeds').item.json.title,\n  company: $('Normalize & Combine All Feeds').item.json.company_name,\n  source: $('Normalize & Combine All Feeds').item.json.source,\n  link: $('Normalize & Combine All Feeds').item.json.url,\n  location: $('Normalize & Combine All Feeds').item.json.location,\n  pitch: $json.candidates[0].content.parts[0].text,\n  status: 'New Lead / To Review'\n}) }}"
+      },
+      "id": "push-sheet",
+      "name": "Push to Google Sheets Webhook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1300,
+        460
+      ]
+    }
+  ],
+  "connections": {
+    "Every 6 Hours Trigger": {
+      "main": [
+        [
+          {
+            "node": "1. Fetch Remotive Jobs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "2. Fetch RemoteOK Jobs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "3. Fetch Y Combinator Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1. Fetch Remotive Jobs": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Combine All Feeds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2. Fetch RemoteOK Jobs": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Combine All Feeds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. Fetch Y Combinator Jobs": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Combine All Feeds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & Combine All Feeds": {
+      "main": [
+        [
+          {
+            "node": "Gemini AI Pitch Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini AI Pitch Generator": {
+      "main": [
+        [
+          {
+            "node": "Filter Out Irrelevant Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Out Irrelevant Jobs": {
+      "main": [
+        [
+          {
+            "node": "Create Trello Card",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Push Telegram Sound Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Push to Google Sheets Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

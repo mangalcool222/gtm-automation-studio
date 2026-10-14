@@ -14,6 +14,7 @@
 | **Standalone Demo GitHub Repo** | `https://github.com/mangalcool222/automation-client-demo` | Independent repo deployed on Coolify for `demo.gtm.trackkaroai.com`. |
 | **Agency Master GitHub Repo** | `https://github.com/mangalcool222/gtm-automation-studio` | Main agency backend code, n8n JSON blueprints, and client onboarding templates. |
 | **Live Trello CRM Pipeline Board** | `https://trello.com/b/ce7to7Mk/gtm-prospect-pipeline` | Live 6-column prospect pipeline board pre-populated with leads. |
+| **Autonomous Outbound SDR (Harvey)** | `https://github.com/mangalcool222/harvey` | Autonomous AI cold email & prospecting agent powered by Claude Code/Codex with zero token costs. |
 
 ---
 
@@ -56,6 +57,7 @@
 - 💬 **WhatsApp Copy Templates**: [`WHATSAPP_TEMPLATES.md`](./agency-client-templates/whatsapp-copy-templates/WHATSAPP_TEMPLATES.md)
 - 📊 **Google Sheet CRM Setup & Apps Script**: [`GOOGLE_SHEET_CRM_TEMPLATE.md`](./agency-client-templates/google-sheet-crm-setup/GOOGLE_SHEET_CRM_TEMPLATE.md)
 - ⚡ **n8n Workflow JSON Blueprints**: `./n8n-blueprints/`
+  - 🤖 [`08_MULTI_PORTAL_JOB_HUNTER_MASTER_BLUEPRINT.json`](./n8n-blueprints/08_MULTI_PORTAL_JOB_HUNTER_MASTER_BLUEPRINT.json) *(Remotive + RemoteOK + Y Combinator multi-feed ingest with Gemini AI & Trello/Telegram dispatch)*
 
 ---
 
